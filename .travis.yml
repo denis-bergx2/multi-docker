@@ -1,0 +1,24 @@
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t rybalka/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run rybalka/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t rybalka/multi-client ./client
+  - docker build -t rybalka/multi-nginx ./nginx
+  - docker build -t rybalka/multi-server ./server
+  - docker build -t rybalka/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin 
+
+  - docker push rybalka/multi-client  
+  - docker push rybalka/multi-nginx  
+  - docker push rybalka/multi-server  
+  - docker push rybalka/multi-worker  
+
+    
